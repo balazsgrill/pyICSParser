@@ -262,7 +262,7 @@ class vevent:
             if len(propval)>8:
                 self.Validator("3.3.4_1","expected date, found: %s"%(propval))
             else:
-                newdate = datetime.strptime(propval,"%Y%m%d").date()
+                newdate = datetime.strptime(propval,"%Y%m%d")
         else:
             if propval[len(propval)-1]=="Z":
                 propval = propval[:-1]
@@ -1105,7 +1105,8 @@ class iCalendar:
                                               hour = tmp_event["DTSTART"].hour,
                                               minute = tmp_event["DTSTART"].minute,
                                               second = tmp_event["DTSTART"].second)
-                tmp_event["DTSTART"] = tmp_event["DTSTART"] +utcoffset
+                if utcoffset != None:
+                    tmp_event["DTSTART"] = tmp_event["DTSTART"] +utcoffset
 
             """
             For cases where a "VEVENT" calendar component
@@ -1768,6 +1769,7 @@ class iCalendar:
         return dtTZ
        
     def _type_date(self,dt):
+        dt = dt.replace(tzinfo=None)
         typeDT = "DATETIME-TZ"
         if type(dt)==type(datetime(2013,2,6).date()):
             typeDT= "DATE"
@@ -1822,15 +1824,15 @@ class iCalendar:
                 list_dates.append(date)
         self._log("413: list_dates at end of _sublist",[list_dates])
         return list_dates
-    def get_event_instances(self,start=datetime.today().strftime("%Y%m%d"),end=datetime.today().strftime("%Y%m%d"),count=-1):
+    def get_event_instances(self,start=datetime.today(),end=datetime.today()+timedelta(days =1),count=-1):
         """Returns an array of events with dates, uid, and summary
         
         The function returns the array of events within a given date window (defined by start and end),
         should only a certain number of events be needed either from a start date or to an end date the
         missing date should be set to Null
         """
-        self.OccurencesWindowStartDate = datetime.strptime(start,"%Y%m%d")
-        self.OccurencesWindowEndDate = datetime.strptime(end,"%Y%m%d")+timedelta(days =1)
+        self.OccurencesWindowStartDate = start
+        self.OccurencesWindowEndDate = end
         self.parse_loaded()
         self._flatten()
         try:
